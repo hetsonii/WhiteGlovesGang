@@ -1,0 +1,59 @@
+/* Sidebar.css */
+
+.student-list {
+    background-color: #f2f2f2;
+    padding: 20px;
+    border-radius: 5px;
+    color: black;
+  }
+  
+  .student-list h2 {
+    font-size: 1.2rem;
+    margin-bottom: 10px;
+  }
+  
+  .student {
+    position: relative; /* Add this for positioning */
+    padding: 10px;
+    margin: 5px 0;
+    border-radius: 5px;
+    user-select: none;
+    overflow: hidden; /* Add this to hide overflow content */
+  }
+  
+  .student::before {
+    content: ''; /* Create a pseudo-element for the background */
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: linear-gradient(
+      45deg,
+      #d3d3d3 25%,
+      #e0e0e0 50%,
+      #f2f2f2 75%
+    );
+    background-size: 200% 100%;
+    animation: loading 1.5s infinite linear;
+    z-index: -1; /* Send the pseudo-element to the background */
+    opacity: 0.3; /* Adjust opacity for a subtle effect */
+  }
+  
+  @keyframes loading {
+    0% {
+      background-position: 200% 0;
+    }
+    100% {
+      background-position: -200% 0;
+    }
+  }
+  
+
+  .student.present {
+    background-color: #4caf50; /* Green background for present students */
+  }
+  
+  .student.absent {
+    background-color: #ff5252; /* Red background for absent students */
+  }
