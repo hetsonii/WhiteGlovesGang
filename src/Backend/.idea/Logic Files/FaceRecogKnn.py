@@ -2,7 +2,7 @@ import cv2,time
 import pickle
 import face_recognition
 from face_recognition.face_recognition_cli import image_files_in_folder
-def predict(img_path, knn_clf=None, model_path=None, threshold=0.6): # 6 needs 40+ accuracy, 4 needs 60+ accuracy
+def predict(img_path, knn_clf=None, model_path=None, threshold=0.5): # 6 needs 40+ accuracy, 4 needs 60+ accuracy
     if knn_clf is None and model_path is None:
         raise Exception("Must supply knn classifier either thourgh knn_clf or model_path")
     # Load a trained KNN model (if one was passed in)
