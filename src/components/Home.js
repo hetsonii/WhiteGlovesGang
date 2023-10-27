@@ -7,7 +7,6 @@ import Topbar from "./Topbar";
 import "./Home.css";
 
 function Home() {
-  const webcamRef = useRef(null);
   const [studentData, setStudentData] = useState(studentsData); // Change the state variable name
   const [webcamOn, setWebcamOn] = useState(true);
   const [presentStudents, setPresentStudents] = useState([]);
@@ -16,60 +15,6 @@ function Home() {
   const [selectedBatch, setSelectedBatch] = useState(null);
   const [selectedStudentData, setSelectedStudentData] = useState(null);
 
-  // Update the addStudentToPresent function to use the filtered data
-  // const addStudentToPresent = () => {
-  //   if (remainingStudents.length > 0) {
-  //     const [studentToAdd, ...restStudents] = remainingStudents;
-  //     // Check if the student's presence status is false, then set it to true
-  //     if (!studentToAdd.present) {
-  //       const updatedStudent = { ...studentToAdd, present: true };
-  //       setStudentData((prevStudentData) => {
-  //         const updatedData = prevStudentData.map((student) =>
-  //           student.rollNumber === studentToAdd.rollNumber ? updatedStudent : student
-  //         );
-  //         return updatedData;
-  //       });
-  //     }
-  //     setPresentStudents((prevPresentStudents) => [
-  //       ...prevPresentStudents,
-  //       studentToAdd,
-  //     ]);
-  //     setRemainingStudents(restStudents);
-  //   }
-  // };
-
-
-  // useEffect(() => {
-  //   const interval = setInterval(() => {
-  //     addStudentToPresent();
-  //     console.log(studentData);
-  //   }, 4000); // Add a student every 4 seconds
-
-  //   return () => clearInterval(interval);
-  // }, [remainingStudents]);
-
-  useEffect(() => {
-    async function getCameraStream() {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: true,
-        });
-        if (webcamRef.current) {
-          webcamRef.current.stream = stream;
-        }
-      } catch (error) {
-        console.error("Error accessing camera:", error);
-      }
-    }
-
-    if (webcamOn) {
-      getCameraStream();
-    } else {
-      if (webcamRef.current) {
-        webcamRef.current.stream.getTracks().forEach((track) => track.stop());
-      }
-    }
-  }, [webcamOn]);
 
   const toggleWebcam = () => {
     setWebcamOn((prevWebcamOn) => !prevWebcamOn);
@@ -78,7 +23,7 @@ function Home() {
   const handleClassChange = (event) => {
     const className = event.target.value;
     setSelectedClass(className);
-    setSelectedBatch(null); // Reset batch selection
+    setSelectedBatch(null); 
     setSelectedStudentData({});
   };
 
@@ -132,14 +77,7 @@ function Home() {
             }}
           >
             {webcamOn ? (
-              // <Webcam
-              //   audio={false}
-              //   mirrored={true}
-              //   ref={webcamRef}
-              //   screenshotFormat="image/jpeg"
-              //   className="webcam"
-              // />
-              <img src="http://127.0.0.1:5000/video_feed" />
+              <img className="webcam" src="http://127.0.0.1:5000/video_feed" />
             ) : (
               <div className="text-center">Webcam is off</div>
             )}

@@ -1,5 +1,7 @@
 import cv2
 import os
+import csv
+import json
 import pickle
 import math
 import face_recognition
@@ -143,7 +145,7 @@ def find_camera_index():
 
 
 def takeAttendance(name):
-    with open('attendance.csv', 'a+') as f:
+    with open('../data/attendance.csv', 'a+') as f:
         f.seek(0)
         lines = f.readlines()
         nameList = [line.split(',')[0] for line in lines]
@@ -151,6 +153,16 @@ def takeAttendance(name):
             now = datetime.now()
             datestring = now.strftime('%H:%M:%S')
             f.write(f'{name},{datestring}\n')
+    
+    jsonAttendanceData = []
+    with open('../data/attendance.csv') as csvFile:
+        csvReader = csvFile.readlines()
+        for row in csvReader:
+            jsonAttendanceData.append(row.split(',')[0])
+
+    with open('../data/attendance.json', 'w') as jsonFile:
+        jsonFile.write(json.dumps(jsonAttendanceData, indent=4))
+
 
 def predict(img, knn_clf=None, model_path=None, threshold=0.5):
     if knn_clf is None and model_path is None:
@@ -217,21 +229,33 @@ def gen():
 
 
 @app.route('/upload', methods=['POST'])
-def upload_file():
-    if 'file' not in request.files:
-        return jsonify({'error': 'No file provided'})
+def upload_files():
+    uploaded_files = request.files.getlist('file')  # Get a list of uploaded files
 
-    file = request.files['file']
-    
-    if file.filename == '':
-        return jsonify({'error': 'Empty filename'})
+    if len(uploaded_files) == 0:
+        return jsonify({'error': 'No files provided'})
 
-    if file and allowed_file(file.filename):
-        filename = secure_filename(file.filename)
-        save_uploaded_file(file, app.config['UPLOAD_FOLDER'], filename)
+    uploaded_filenames = []
+
+    for file in uploaded_files:
+        if file.filename == '':
+            continue  
+
+        if file and allowed_file(file.filename):
+            filename = secure_filename(file.filename)
+            save_uploaded_file(file, app.config['UPLOAD_FOLDER'], filename)
+            uploaded_filenames.append(filename)
+
+    if uploaded_filenames:
         train("public/images/", "public/classifier/trained_knn_model.clf")
+
+        # Optionally, you can return a response with the list of successfully uploaded filenames
+        return jsonify({'success': 'Files uploaded and trained successfully', 'uploaded_files': uploaded_filenames})
     else:
-        return jsonify({'error': 'Invalid file format'})
+        return jsonify({'error': 'No valid files uploaded'})
+
+# The rest of your code remains the same
+
 
 @app.route('/predict', methods=['POST'])
 def predict_image():
