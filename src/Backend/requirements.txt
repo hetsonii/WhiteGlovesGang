@@ -1,0 +1,5 @@
+opencv-python
+face_recognition
+flask
+flask-cors
+scikit-learn

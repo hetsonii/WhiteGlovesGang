@@ -1,14 +1,24 @@
-const studentData1 = [
+const studentsData = [
     {
-      rollNumber: "21CS068",
-      name: "Het Soni",
-      present: false,
-    },
-    {
-      rollNumber: "21CS062",
-      name: "Joy Shah",
-      present: false,
-    },
-  ];
-  
-  export default studentData1;
+        "5CSE": {
+            "A": {},
+            "B": {},
+            "C": {
+                "21CS062": "Joy",
+                "21CS068": "Het",
+                "21CS069": "Harshil"
+            },
+            "D": {
+                "D22CS080": "Ahmed"
+            }
+        },
+        "3CSE1": {
+            "A": {},
+            "B": {},
+            "C": {},
+            "D": {}
+        }
+    }
+];
+
+export default studentsData;

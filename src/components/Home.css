@@ -1,5 +1,5 @@
 .text-green {
-  color: #008000; 
+  color: #008000;
 }
 
 .text-red {
@@ -51,10 +51,9 @@
 }
 
 .custom-button.webcam-on {
-  background-color: #4caf50; 
+  background-color: #4caf50;
 }
 
 .text-center {
   text-align: center;
 }
-

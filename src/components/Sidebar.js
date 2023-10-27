@@ -1,17 +1,16 @@
 import React from 'react';
 import './Sidebar.css';
 
+
 function Sidebar({ data }) {
   return (
-    <div className="student-list">
+    <div className="studentBox">
+
       <h2>Student List</h2>
-      <ul>
-        {data.map((student, index) => (
-          <li
-            key={index}
-            className={`student ${student.present ? 'present' : 'absent'}`}
-          >
-            <span>{student.rollNumber} -</span> {student.name}
+      <ul className="studentsList">
+        {Object.entries(data).map(([studentId, studentName]) => (
+          <li className='student' key={studentId}>
+            {studentId}: {studentName}
           </li>
         ))}
       </ul>
