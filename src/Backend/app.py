@@ -11,6 +11,8 @@ from werkzeug.utils import secure_filename
 from sklearn import neighbors
 import numpy as np
 from datetime import datetime
+import warnings
+warnings.filterwarnings("ignore")
 
 UPLOAD_FOLDER = r'public/images'  # Change this to the desired upload folder
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}

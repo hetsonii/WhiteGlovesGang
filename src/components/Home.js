@@ -1,6 +1,7 @@
 import React, { useRef, useEffect, useState } from "react";
 import Sidebar from "./Sidebar";
-import studentsData from "../data/students.js"; // Change the name of imported data
+import studentsData from "../data/students.js"; 
+import attendanceData from "../data/attendance.json";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faVideo, faVideoSlash } from "@fortawesome/free-solid-svg-icons";
 import Topbar from "./Topbar";
@@ -23,7 +24,7 @@ function Home() {
   const handleClassChange = (event) => {
     const className = event.target.value;
     setSelectedClass(className);
-    setSelectedBatch(null); 
+    setSelectedBatch(null);
     setSelectedStudentData({});
   };
 
@@ -33,6 +34,27 @@ function Home() {
     const studentData = studentsData[0][selectedClass][batch];
     setSelectedStudentData(studentData);
   };
+
+
+  useEffect(() => {
+    if (selectedClass && selectedBatch) {
+      const attendanceList = attendanceData;
+      const presentStudents = [];
+      const updatedSelectedStudentData = { ...selectedStudentData };
+
+      for (const [key, value] of Object.entries(studentsData[0][selectedClass][selectedBatch])) {
+        if (attendanceList.includes(key) || attendanceList.includes(value)) {
+          presentStudents.push({ rollNumber: key, name: value });
+          // Remove the key-value pair from selectedStudentData
+          delete updatedSelectedStudentData[key];
+        }
+      }
+
+      setPresentStudents(presentStudents);
+      setSelectedStudentData(updatedSelectedStudentData);
+    }
+  }, [selectedClass, selectedBatch, selectedStudentData]);
+
 
   return (
     <div>
@@ -100,6 +122,7 @@ function Home() {
               {student.rollNumber} - {student.name}
             </div>
           ))}
+
         </div>
       </div>
     </div>
