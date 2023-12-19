@@ -206,7 +206,7 @@ def gen():
         frame = cv2.flip(frame, 1)
         frame_copy = cv2.resize(frame, (0, 0), fx=0.25, fy=0.25)
         frame_copy = cv2.cvtColor(frame_copy, cv2.COLOR_BGR2RGB)
-        predictions = predict(frame_copy, model_path="/home/hetsonii/Desktop/SmileStamp-Attendance_System/public/classifier/trained_knn_model.clf")  # Update path
+        predictions = predict(frame_copy, model_path="../../public/classifier/trained_knn_model.clf")  # Update path
         font = cv2.FONT_HERSHEY_DUPLEX
 
         for name, (top, right, bottom, left) in predictions:
