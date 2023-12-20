@@ -1,0 +1,58 @@
+/* Reviewattendance.css */
+
+/* Container styles */
+.page-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh; /* Adjust the height as needed */
+
+  }
+  
+  /* Box styles */
+  .attendance-box {
+    border: 2px solid #ccc; /* Border color */
+    padding: 20px;
+    border-radius: 10px;
+    width: 80%; /* Adjust the width as needed */
+    max-width: 600px; 
+    background-color: #ffe1a8; /* Set your desired background color */
+
+  }
+  
+  .students-container {
+    display: flex;
+    flex-direction: row; /* Align students vertically */
+    align-items: center;
+    margin-top: 20px; /* Adjust the margin as needed */
+  }
+  
+  .present-student{
+    background-color: #4CAF50; /* Green for present, Red for absent */
+    color: white;
+    padding: 10px;
+    margin: 5px;
+    border-radius: 5px;
+  }
+  .absent-student {
+    background-color: red; /* Green for present, Red for absent */
+    color: white;
+    padding: 10px;
+    margin: 5px;
+    border-radius: 5px;
+  }
+  
+  /* Rectangular shape */
+  .attendance-box::before {
+    /* content: ""; */
+    display: block;
+    position: absolute;
+    width: 0;
+    height: 0;
+    border-style: solid;
+    /* border-width: 12px 0 12px 20px;  */
+    /* border-color: transparent transparent transparent #fff;  */
+    /* margin-top: -12px; */
+    /* margin-left: -20px; */
+  }
+  

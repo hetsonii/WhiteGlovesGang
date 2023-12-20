@@ -4,6 +4,7 @@ import studentsData from "../data/students.js";
 import attendanceData from "../data/attendance.json";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faVideo, faVideoSlash } from "@fortawesome/free-solid-svg-icons";
+import { useNavigate } from 'react-router-dom';
 import Topbar from "./Topbar";
 import "./Home.css";
 
@@ -15,6 +16,16 @@ function Home() {
   const [selectedClass, setSelectedClass] = useState(null);
   const [selectedBatch, setSelectedBatch] = useState(null);
   const [selectedStudentData, setSelectedStudentData] = useState(null);
+
+  const navigate = useNavigate();
+
+  const handleSubmit = () => {
+    const attendanceData = {
+      presentStudents,
+      selectedStudentData,
+    };
+    navigate('/page1', { state: attendanceData });
+  };
 
 
   const toggleWebcam = () => {
@@ -122,7 +133,7 @@ function Home() {
               {student.rollNumber} - {student.name}
             </div>
           ))}
-
+          <button onClick={handleSubmit}>Submit</button>
         </div>
       </div>
     </div>
