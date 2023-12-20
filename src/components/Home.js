@@ -49,7 +49,7 @@ function Home() {
 
   useEffect(() => {
     if (selectedClass && selectedBatch) {
-      const attendanceList = attendanceData;
+      const attendanceList = attendanceData.map(item => item.name);
       const presentStudents = [];
       const updatedSelectedStudentData = { ...selectedStudentData };
 

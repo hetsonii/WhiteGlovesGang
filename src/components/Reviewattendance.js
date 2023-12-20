@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
-import './Reviewattendance.css'; 
+import './Reviewattendance.css';
 
 function Reviewattendance() {
   const [absentStudents, setAbsentStudents] = useState([]);
@@ -16,6 +16,27 @@ function Reviewattendance() {
     }
 
     setAbsentStudents(updatedSelectedStudentData);
+  }
+
+  const handleSubmit = async () => {
+    try {
+      const response = await fetch('http://127.0.0.1:5000/submit-attendance', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        alert('Attendance submitted successfully!');
+      } else {
+        alert(`Error: ${data.error}`);
+      }
+    } catch (error) {
+      console.error('Error submitting attendance:', error);
+    }
   }
 
   useEffect(() => {
@@ -45,6 +66,7 @@ function Reviewattendance() {
           ))}
         </div>
       </div>
+      <button onClick={handleSubmit}>Submit</button>
     </div>
   );
 }

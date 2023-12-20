@@ -4,9 +4,11 @@ import csv
 import json
 import pickle
 import math
+import shutil
 import face_recognition
 from flask import Flask, render_template, request, Response
-from flask import redirect, url_for
+from flask import redirect, url_for, jsonify
+from flask_cors import CORS
 from werkzeug.utils import secure_filename
 from sklearn import neighbors
 import numpy as np
@@ -18,6 +20,7 @@ UPLOAD_FOLDER = r'public/images'  # Change this to the desired upload folder
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 
 app = Flask(__name__)
+CORS(app)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 def train_from_uploaded_images(upload_folder, model_save_path):
@@ -147,20 +150,52 @@ def find_camera_index():
 
 
 def takeAttendance(name):
-    with open('../data/attendance.csv', 'a+') as f:
+    csv_path = '../data/attendance.csv'
+    
+    with open(csv_path, 'a+') as f:
         f.seek(0)
         lines = f.readlines()
         nameList = [line.split(',')[0] for line in lines]
+        
+        now = datetime.now()
+        datestring = now.strftime('%H:%M:%S')
+        
         if name not in nameList:
-            now = datetime.now()
-            datestring = now.strftime('%H:%M:%S')
-            f.write(f'{name},{datestring}\n')
-    
+            f.write(f'{name},{datestring},,\n')
+        else:
+            # Update the existing entry with outtime and duration
+            for line in lines:
+                if line.startswith(name):
+                    # Extract intime
+                    intime = line.split(',')[1]
+                    # Calculate duration
+                    intime_dt = datetime.strptime(intime, '%H:%M:%S')
+                    outtime_dt = now
+                    duration = outtime_dt - intime_dt
+                    # print(str(duration).split(',')[1])
+
+                    duration_str = str(duration).split(',')[1].split('.')[0].strip()  # Convert to string in right format
+
+                    updated_line = f'{name},{intime},{now.strftime("%H:%M:%S")},{duration_str}\n'
+                    lines[lines.index(line)] = updated_line
+                    break
+            
+            # Write the updated content back to the file
+            f.seek(0)
+            f.truncate()
+            f.writelines(lines)
+            
+    # Create JSON file with the updated data
     jsonAttendanceData = []
-    with open('../data/attendance.csv') as csvFile:
-        csvReader = csvFile.readlines()
+    with open(csv_path) as csvFile:
+        csvReader = csv.reader(csvFile)
         for row in csvReader:
-            jsonAttendanceData.append(row.split(',')[0])
+            jsonAttendanceData.append({
+                'name': row[0],
+                'intime': row[1],
+                'outtime': row[2],
+                'duration': row[3]
+            })
 
     with open('../data/attendance.json', 'w') as jsonFile:
         jsonFile.write(json.dumps(jsonAttendanceData, indent=4))
@@ -281,6 +316,28 @@ def predict_image():
         return jsonify({'predictions': result})
     else:
         return jsonify({'error': 'Invalid file format'})
+
+
+@app.route('/submit-attendance', methods=['POST'])
+def submit_attendance():
+    try:
+        archive_folder = '../data/archive/'
+        current_date = datetime.now().strftime('%Y-%m-%d')
+        save_time = datetime.now().strftime('%H-%M-%S')
+
+        shutil.move('../data/attendance.csv', f'{archive_folder}attendance_{current_date}_{save_time}.csv')
+        shutil.move('../data/attendance.json', f'{archive_folder}attendance_{current_date}_{save_time}.json')
+
+        # Clear current csv file
+        open('../data/attendance.csv', 'w').close()
+
+        # Overwrite the JSON file with an empty array
+        with open('../data/attendance.json', 'w') as jsonFile:
+            jsonFile.write("[]")
+
+        return jsonify({'success': True})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
 
 
 # @app.route('/success', methods=['GET', 'POST'])
