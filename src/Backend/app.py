@@ -16,7 +16,7 @@ from datetime import datetime
 import warnings
 warnings.filterwarnings("ignore")
 
-UPLOAD_FOLDER = r'./images'  # Change this to the desired upload folder
+UPLOAD_FOLDER = r'public/images'  # Change this to the desired upload folder
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 
 app = Flask(__name__)
