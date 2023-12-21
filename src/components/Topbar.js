@@ -10,7 +10,7 @@ function Topbar() {
         <nav className="topbar-nav">
           <Link to="/" className="topbar-link">Dashboard</Link>
           <Link to="/page1" className="topbar-link">Page 1</Link>
-          <Link to="/page2" className="topbar-link">Page 2</Link>
+          <Link to="/upload" className="topbar-link">Upload</Link>
         </nav>
       </div>
     </div>
