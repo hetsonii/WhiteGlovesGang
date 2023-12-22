@@ -22,6 +22,7 @@ ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 app = Flask(__name__)
 CORS(app)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+webcam = None
 
 def train_from_uploaded_images(upload_folder, model_save_path):
     X = []
@@ -233,8 +234,13 @@ def predict(img, knn_clf=None, model_path=None, threshold=0.5):
     
     return predictions
 
+
 def gen():
-    webcam = cv2.VideoCapture(find_camera_index())
+    global webcam
+
+    if webcam is None:
+        webcam = cv2.VideoCapture(find_camera_index())
+
     rval, frame = webcam.read()
 
     while rval:
@@ -290,8 +296,6 @@ def upload_files():
         return jsonify({'success': 'Files uploaded and trained successfully', 'uploaded_files': uploaded_filenames})
     else:
         return jsonify({'error': 'No valid files uploaded'})
-
-# The rest of your code remains the same
 
 
 @app.route('/predict', methods=['POST'])
@@ -354,6 +358,19 @@ def submit_attendance():
 #         return render_template('upload.html')
 #     else:
 #         return render_template('upload.html')
+
+
+@app.route('/release_webcam')
+def release_webcam():
+    global webcam
+    if webcam is not None:
+        webcam.release()
+        cv2.destroyAllWindows()
+        webcam = None  # Reset the webcam variable
+        return jsonify({'success': True})
+    else:
+        return 'Webcam is not currently active'
+
 
 @app.route('/video_feed')
 def video_feed():
