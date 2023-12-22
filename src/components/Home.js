@@ -1,6 +1,6 @@
 import React, { useRef, useEffect, useState } from "react";
 import Sidebar from "./Sidebar";
-import studentsData from "../data/students.js"; 
+import studentsData from "../data/students.js";
 import attendanceData from "../data/attendance.json";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faVideo, faVideoSlash } from "@fortawesome/free-solid-svg-icons";
@@ -28,8 +28,19 @@ function Home() {
   };
 
 
+  // const toggleWebcam = () => {
+  //   setWebcamOn((prevWebcamOn) => !prevWebcamOn);
+  // };
+
   const toggleWebcam = () => {
-    setWebcamOn((prevWebcamOn) => !prevWebcamOn);
+    setWebcamOn(!webcamOn);
+    // Add logic to call your Flask API endpoint to release the webcam
+    // You can use fetch or any other method to make a request to the endpoint
+    // Example using fetch:
+    fetch('http://127.0.0.1:5000/release_webcam')
+      .then(response => response.text())
+      .then(data => console.log(data))
+      .catch(error => console.error('Error:', error));
   };
 
   const handleClassChange = (event) => {
@@ -100,32 +111,37 @@ function Home() {
           </div>
           <Sidebar data={selectedStudentData || {}} />
         </div>
+
         <div className="webcam-container">
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              height: "100vh",
-            }}
-          >
-            {webcamOn ? (
-              <img className="webcam" src="http://127.0.0.1:5000/video_feed" />
-            ) : (
-              <div className="text-center">Webcam is off</div>
-            )}
-          </div>
-          <button
-            onClick={toggleWebcam}
-            className={`custom-button ${webcamOn ? "webcam-on" : "webcam-off"
-              }`}
-          >
-            <FontAwesomeIcon
-              icon={webcamOn ? faVideo : faVideoSlash}
-            />
-            {webcamOn ? "Turn Off Webcam" : "Turn On Webcam"}
-          </button>
+          {selectedClass && selectedBatch && (
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                height: "100vh",
+              }}
+            >
+              {webcamOn ? (
+                <img className="webcam" src="http://127.0.0.1:5000/video_feed" />
+              ) : (
+                <div className="text-center">Webcam is off</div>
+              )}
+            </div>
+          )}
+          {selectedClass && selectedBatch && (
+            <button
+              onClick={toggleWebcam}
+              className={`custom-button ${webcamOn ? "webcam-on" : "webcam-off"}`}
+            >
+              <FontAwesomeIcon
+                icon={webcamOn ? faVideo : faVideoSlash}
+              />
+              {webcamOn ? " Turn Off Webcam" : " Turn On Webcam"}
+            </button>
+          )}
         </div>
+
         <div className="sidebar present-sidebar">
           <h2 className="sidebar-title">Present</h2>
           {presentStudents.map((student, index) => (
