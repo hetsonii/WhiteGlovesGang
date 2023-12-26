@@ -10,12 +10,15 @@ import "./Home.css";
 
 function Home() {
   const [studentData, setStudentData] = useState(studentsData); // Change the state variable name
-  const [webcamOn, setWebcamOn] = useState(true);
   const [presentStudents, setPresentStudents] = useState([]);
   const [remainingStudents, setRemainingStudents] = useState(studentData);
   const [selectedClass, setSelectedClass] = useState(null);
   const [selectedBatch, setSelectedBatch] = useState(null);
   const [selectedStudentData, setSelectedStudentData] = useState(null);
+
+  const [webcamOn, setWebcamOn] = useState(true);
+  const [isButtonDisabled, setIsButtonDisabled] = useState(false);
+  const [progress, setProgress] = useState(0);
 
   const navigate = useNavigate();
 
@@ -27,16 +30,17 @@ function Home() {
     navigate('/page1', { state: attendanceData });
   };
 
-
-  // const toggleWebcam = () => {
-  //   setWebcamOn((prevWebcamOn) => !prevWebcamOn);
-  // };
-
   const toggleWebcam = () => {
     setWebcamOn(!webcamOn);
-    // Add logic to call your Flask API endpoint to release the webcam
-    // You can use fetch or any other method to make a request to the endpoint
-    // Example using fetch:
+    setIsButtonDisabled(true);
+    setProgress(0);
+
+    // Disable the button for 3 seconds
+    setTimeout(() => {
+      setIsButtonDisabled(false);
+    }, 3000);
+
+    // logic to call your Flask API endpoint to release the webcam
     fetch('http://127.0.0.1:5000/release_webcam')
       .then(response => response.text())
       .then(data => console.log(data))
@@ -76,6 +80,24 @@ function Home() {
       setSelectedStudentData(updatedSelectedStudentData);
     }
   }, [selectedClass, selectedBatch, selectedStudentData]);
+
+
+  useEffect(() => {
+    let interval;
+
+    if (isButtonDisabled) {
+      interval = setInterval(() => {
+        setProgress(prevProgress => {
+          const newProgress = prevProgress + (100 / 3000) * 100; // 3000 milliseconds for 100% progress
+          return newProgress >= 100 ? 100 : newProgress;
+        });
+      }, 100);
+    }
+
+    return () => {
+      clearInterval(interval);
+    };
+  }, [isButtonDisabled]);
 
 
   return (
@@ -123,23 +145,28 @@ function Home() {
               }}
             >
               {webcamOn ? (
-                <img className="webcam" src="http://127.0.0.1:5000/video_feed" />
+                <img className="webcam" src={`http://127.0.0.1:5000/video_feed?class=${selectedClass}&batch=${selectedBatch}`} />
               ) : (
                 <div className="text-center">Webcam is off</div>
               )}
             </div>
           )}
+
           {selectedClass && selectedBatch && (
-            <button
-              onClick={toggleWebcam}
-              className={`custom-button ${webcamOn ? "webcam-on" : "webcam-off"}`}
-            >
-              <FontAwesomeIcon
-                icon={webcamOn ? faVideo : faVideoSlash}
-              />
-              {webcamOn ? " Turn Off Webcam" : " Turn On Webcam"}
-            </button>
+            <>
+              {selectedClass && selectedBatch && (
+                <button
+                  onClick={toggleWebcam}
+                  className={`custom-button ${webcamOn ? 'webcam-on' : 'webcam-off'} ${isButtonDisabled ? 'disabled' : ''}`}
+                  disabled={isButtonDisabled}
+                >
+                  <FontAwesomeIcon icon={webcamOn ? faVideo : faVideoSlash} />
+                  {webcamOn ? ' Turn Off Webcam' : ' Turn On Webcam'}
+                </button>
+              )}
+            </>
           )}
+
         </div>
 
         <div className="sidebar present-sidebar">

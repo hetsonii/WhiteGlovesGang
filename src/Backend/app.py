@@ -1,7 +1,9 @@
 import cv2
 import os
+import re
 import csv
 import json
+import time
 import pickle
 import math
 import shutil
@@ -23,6 +25,9 @@ app = Flask(__name__)
 CORS(app)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 webcam = None
+global_selected_class = None
+global_selected_batch = None
+studentsData = {}
 
 def train_from_uploaded_images(upload_folder, model_save_path):
     X = []
@@ -237,39 +242,80 @@ def predict(img, knn_clf=None, model_path=None, threshold=0.5):
 
 def gen():
     global webcam
+    global global_selected_class, global_selected_batch, studentsData
+
+    selected_class = global_selected_class
+    selected_batch = global_selected_batch
+
+    with open("../data/students.js") as jsFile:
+        jsCode = jsFile.read()
+
+    # Use a regular expression to extract the relevant data
+    match = re.search(r'const studentsData = (\[.*?\]);', jsCode, re.DOTALL)
+
+    if match:
+        # Convert the string to a list of dictionaries
+        students_data_json = match.group(1)
+        studentsData = eval(students_data_json)  # Evaluate the JSON-like string
+    else:
+        studentsData = {}
+
+    for class_data in studentsData:
+        if selected_class in class_data:
+            batch_data = class_data[selected_class].get(selected_batch)
+            if batch_data:
+                matching_data = batch_data
+                break
+
+    studentsData = matching_data
+
+    print(list(studentsData.keys()))
 
     if webcam is None:
         webcam = cv2.VideoCapture(find_camera_index())
 
-    rval, frame = webcam.read()
+    while 1==1:
+        try:
 
-    while rval:
-        frame = cv2.flip(frame, 1)
-        frame_copy = cv2.resize(frame, (0, 0), fx=0.25, fy=0.25)
-        frame_copy = cv2.cvtColor(frame_copy, cv2.COLOR_BGR2RGB)
-        predictions = predict(frame_copy, model_path="../../public/classifier/trained_knn_model.clf")  # Update path
-        font = cv2.FONT_HERSHEY_DUPLEX
+            rval, frame = webcam.read()
 
-        for name, (top, right, bottom, left) in predictions:
-            top *= 4  # scale back the frame since it was scaled to 1/4 in size
-            right *= 4
-            bottom *= 4
-            left *= 4
-            cv2.rectangle(frame, (left, top), (right, bottom), (0, 255, 255), 2)
-            cv2.putText(frame, name, (left - 10, top - 6), font, 0.8, (255, 255, 255), 1)
+            if not rval:
+                print("Error reading frame. Restarting webcam...")
+                webcam.release() 
+                time.sleep(1)  
+                webcam = cv2.VideoCapture(find_camera_index())
+                continue
 
-            if name != 'unknown':
-                takeAttendance(name)
-
-        ret, jpeg = cv2.imencode('.jpg', frame)
-        frame_encoded = jpeg.tobytes()
-        yield (b'--frame\r\n' b'Content-Type: image/jpeg\r\n\r\n' + frame_encoded + b'\r\n')
+            frame = cv2.flip(frame, 1)
+            frame_copy = cv2.resize(frame, (0, 0), fx=0.25, fy=0.25)
+            frame_copy = cv2.cvtColor(frame_copy, cv2.COLOR_BGR2RGB)
+            predictions = predict(frame_copy, model_path="../../public/classifier/trained_knn_model.clf")  # Update path
+            font = cv2.FONT_HERSHEY_DUPLEX
             
-        rval, frame = webcam.read()
+            for name, (top, right, bottom, left) in predictions:
+                top *= 4  # scale back the frame since it was scaled to 1/4 in size
+                right *= 4
+                bottom *= 4
+                left *= 4
+                cv2.rectangle(frame, (left, top), (right, bottom), (0, 255, 255), 2)
+                cv2.putText(frame, name, (left - 10, top - 6), font, 0.8, (255, 255, 255), 1)
 
+                if name != 'unknown' and name in list(studentsData.keys()):
+                    takeAttendance(name)
+
+            ret, jpeg = cv2.imencode('.jpg', frame)
+            frame_encoded = jpeg.tobytes()
+            yield (b'--frame\r\n' b'Content-Type: image/jpeg\r\n\r\n' + frame_encoded + b'\r\n')
+
+        except Exception as e:
+            print('Error:', e)
+            webcam.release()
+            webcam = None
+            continue
         
+        # rval, frame = webcam.read()
 
-    webcam.release()
+    # webcam.release()
     cv2.destroyAllWindows()
 
 
@@ -376,6 +422,12 @@ def release_webcam():
 
 @app.route('/video_feed')
 def video_feed():
+    global global_selected_class, global_selected_batch
+
+    # Retrieve selectedClass and selectedBatch from the request
+    global_selected_class = request.args.get('class')
+    global_selected_batch = request.args.get('batch')
+
     return Response(gen(), mimetype='multipart/x-mixed-replace; boundary=frame')
 
 # @app.route('/train_classifier', methods=['GET', 'POST'])

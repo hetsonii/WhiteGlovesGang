@@ -20,11 +20,12 @@
 } */
 
 .sidebar-title {
-  color: #333;
+  color: #ffffff;
   margin-bottom: 20px;
   font-size: 24px;
   font-weight: bold;
 }
+
 
 .input-fields select {
   width: 100%;
@@ -91,6 +92,11 @@
   transform: translateY(-2px);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
+
+.custom-button.disabled {
+  opacity: 0.7; /* You can adjust the opacity to visually indicate it's disabled */
+}
+
 
 .webcam {
   max-width: 95%;
