@@ -27,7 +27,7 @@ function Home() {
       presentStudents,
       selectedStudentData,
     };
-    navigate('/page1', { state: attendanceData });
+    navigate('/review', { state: attendanceData });
   };
 
   const toggleWebcam = () => {

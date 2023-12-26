@@ -1,60 +1,193 @@
+// import React, { useRef, useState } from 'react';
+// import './UploadPage.css';
+
+// function UploadPage() {
+//   const fileInputRef = useRef(null);
+//   const [uploadedImages, setUploadedImages] = useState([]);
+//   const [uploadStatus, setUploadStatus] = useState(null);
+
+//   // Function to trigger file selection on button click
+//   const handleButtonClick = () => {
+//     if (fileInputRef.current) {
+//       fileInputRef.current.click();
+//     }
+//   };
+
+//   // Function to handle image file upload
+//   const handleFileUpload = (e) => {
+//     const files = Array.from(e.target.files);
+
+//     // Process each uploaded file
+//     files.forEach((file) => {
+//       const reader = new FileReader();
+
+//       // Read the file as data URL (for displaying images)
+//       reader.readAsDataURL(file);
+
+//       reader.onload = () => {
+//         // Create container for image and input box
+//         const container = document.createElement('div');
+//         container.className = 'image-container';
+
+//         // Display the uploaded image
+//         const imageElement = document.createElement('img');
+//         imageElement.src = reader.result;
+//         imageElement.alt = file.name;
+//         container.appendChild(imageElement);
+
+//         // Create input box for changing file name
+//         const input = document.createElement('input');
+//         input.type = 'text';
+//         const fileNameWithoutExtension = file.name.replace(/\.[^/.]+$/, ''); // Remove file extension
+//         input.value = fileNameWithoutExtension; // Display filename without extension in the input box
+//         input.className = 'file-name-input';
+//         input.addEventListener('input', (event) => {
+//           imageElement.alt = event.target.value + file.name.slice(file.name.lastIndexOf('.')); // Update alt attribute with the edited name and extension
+//         });
+//         container.appendChild(input);
+
+//         document.getElementById('image-preview').appendChild(container);
+
+//         console.log('Uploaded file:', file.name);
+
+//         setUploadedImages((prevImages) => [...prevImages, file]);
+//       };
+//     });
+//   };
+
+//   const handleSubmit = () => {
+//     // Submit only if there are uploaded images
+//     if (uploadedImages.length > 0) {
+//       const formData = new FormData();
+//       uploadedImages.forEach((file) => {
+//         formData.append('file', file);
+//         formData.append('updatedName', file.name.replace(/\.[^/.]+$/, '')); // Remove file extension from the name
+//       });
+
+//       // Here, you can add code to upload the files to the backend
+//       fetch('http://127.0.0.1:5000/upload', {
+//         method: 'POST',
+//         body: formData,
+//       })
+//         .then((response) => response.json())
+//         .then((data) => {
+//           // Handle response from the server if needed
+//           console.log('Server response:', data);
+//           if (data.success) {
+//             setUploadStatus('Images uploaded successfully!');
+//           } else {
+//             setUploadStatus('Upload failed. Please try again.');
+//           }
+//         })
+//         .catch((error) => {
+//           // Handle errors
+//           console.error('Error:', error);
+//           setUploadStatus('An error occurred during upload.');
+//         });
+//     } else {
+//       // No uploaded images, prevent form submission
+//       console.warn('No images uploaded');
+//       setUploadStatus('No images uploaded');
+//     }
+//   };
+
+//   return (
+//     <div className="upload-container">
+//       <h2>Upload Student Images</h2>
+//       <div className="upload-area">
+//         <div id="image-preview" className="image-preview">
+//           {/* Uploaded images will be displayed here */}
+//         </div>
+//         <input
+//           type="file"
+//           onChange={handleFileUpload}
+//           accept="image/*" // Accept only image files
+//           multiple
+//           ref={fileInputRef} // Reference for the file input element
+//           style={{ display: 'none' }} // Hide the file input
+//         />
+//         <button onClick={handleButtonClick} className="upload-button">
+//           Select Images
+//         </button>
+//         <p>Upload student images (file name as student name)</p>
+//         <button onClick={handleSubmit} className="submit-button">
+//           Submit
+//         </button>
+//         {uploadStatus && <p>{uploadStatus}</p>}
+//       </div>
+//     </div>
+//   );
+// }
+
+// export default UploadPage;
+
 import React, { useRef, useState } from 'react';
 import './UploadPage.css';
 
 function UploadPage() {
   const fileInputRef = useRef(null);
   const [uploadedImages, setUploadedImages] = useState([]);
-  const [uploadStatus, setUploadStatus] = useState('');
+  const [uploadStatus, setUploadStatus] = useState(null);
 
+  // Function to trigger file selection on button click
   const handleButtonClick = () => {
-    fileInputRef.current.click();
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
   };
 
+  // Function to handle image file upload
   const handleFileUpload = (e) => {
     const files = Array.from(e.target.files);
-    setUploadStatus('');
 
-    files.forEach((file) => {
-      const reader = new FileReader();
-
-      reader.onload = (readEvent) => {
-        setUploadedImages((prevImages) => [
-          ...prevImages,
-          { id: Date.now() + Math.random(), name: file.name, dataUrl: readEvent.target.result }
-        ]);
-      };
-
-      reader.onerror = () => {
-        console.error('Error reading file.');
-        setUploadStatus('Error reading file.');
-      };
-
-      reader.readAsDataURL(file);
-    });
-
-    e.target.value = '';
+    // Update state with new files, ensuring previous state is maintained
+    setUploadedImages(prevImages => [...prevImages, ...files.map(file => ({ file, newName: file.name.replace(/\.[^/.]+$/, '') }))]);
   };
 
-  const handleImageDelete = (imageId) => {
-    setUploadedImages((prevImages) =>
-      prevImages.filter((image) => image.id !== imageId)
-    );
+  // Function to handle file renaming
+  const handleRenameFile = (index, newName) => {
+    setUploadedImages(prevImages => prevImages.map((img, i) => i === index ? { ...img, newName } : img));
   };
 
-  const handleImageNameChange = (event, imageId) => {
-    const newName = event.target.value;
-    setUploadedImages((prevImages) =>
-      prevImages.map((image) =>
-        image.id === imageId ? { ...image, name: newName } : image
-      )
-    );
+  // Function to remove an image from the list
+  const handleRemoveImage = (index) => {
+    setUploadedImages(prevImages => prevImages.filter((_, i) => i !== index));
   };
 
   const handleSubmit = () => {
+    // Submit only if there are uploaded images
     if (uploadedImages.length > 0) {
-      // Implement upload logic here
+      const formData = new FormData();
+      uploadedImages.forEach(({ file, newName }) => {
+        formData.append('file', file);
+        formData.append('updatedName', newName + file.name.slice(file.name.lastIndexOf('.'))); // Append the extension to the updated name
+      });
+
+      // Here, you can add code to upload the files to the backend
+      fetch('http://127.0.0.1:5000/upload', {
+        method: 'POST',
+        body: formData,
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          // Handle response from the server if needed
+          console.log('Server response:', data);
+          if (data.success) {
+            setUploadStatus('Images uploaded successfully!');
+            setUploadedImages([]); // Clear the uploaded images
+          } else {
+            setUploadStatus('Upload failed. Please try again.');
+          }
+        })
+        .catch((error) => {
+          // Handle errors
+          console.error('Error:', error);
+          setUploadStatus('An error occurred during upload.');
+        });
     } else {
-      setUploadStatus('No images to upload.');
+      // No uploaded images, prevent form submission
+      console.warn('No images uploaded');
+      setUploadStatus('No images uploaded');
     }
   };
 
@@ -62,43 +195,42 @@ function UploadPage() {
     <div className="upload-container">
       <h2>Upload Student Images</h2>
       <div className="upload-area">
-        <div className="image-preview">
-          {uploadedImages.map((image) => (
-            <div key={image.id} className="image-container">
-              <img src={image.dataUrl} alt={image.name} />
+        <div id="image-preview" className="image-preview">
+          {uploadedImages.map((img, index) => (
+            <div key={index} className="image-container">
+              <img src={URL.createObjectURL(img.file)} alt={img.newName} />
               <input
                 type="text"
-                defaultValue={image.name}
-                onBlur={(event) => handleImageNameChange(event, image.id)}
+                value={img.newName}
+                onChange={(e) => handleRenameFile(index, e.target.value)}
                 className="file-name-input"
               />
-              <button
-                className="delete-button"
-                onClick={() => handleImageDelete(image.id)}
-              >
-                Delete
+              <button onClick={() => handleRemoveImage(index)} className="remove-image-button">
+                Remove
               </button>
             </div>
           ))}
         </div>
         <input
-          ref={fileInputRef}
           type="file"
-          multiple
-          accept="image/*"
           onChange={handleFileUpload}
-          style={{ display: 'none' }}
+          accept="image/*" // Accept only image files
+          multiple
+          ref={fileInputRef} // Reference for the file input element
+          style={{ display: 'none' }} // Hide the file input
         />
         <button onClick={handleButtonClick} className="upload-button">
           Select Images
         </button>
+        <p>Upload student images (file name as student name)</p>
         <button onClick={handleSubmit} className="submit-button">
           Submit
         </button>
-        {uploadStatus && <p className="upload-status">{uploadStatus}</p>}
+        {uploadStatus && <p>{uploadStatus}</p>}
       </div>
     </div>
   );
 }
 
 export default UploadPage;
+
