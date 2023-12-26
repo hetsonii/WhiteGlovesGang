@@ -1,0 +1,5 @@
+torch
+torchvision
+ultralytics==8.0.228
+cvzone==1.6.1
+mediapipe==0.10.3
