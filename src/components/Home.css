@@ -14,10 +14,28 @@
   min-width: 200px;
 }
 
-.sidebar-title {
+/* .sidebar-title {
   font-size: 1.5rem;
   margin-bottom: 20px;
+} */
+
+.sidebar-title {
+  color: #333;
+  margin-bottom: 20px;
+  font-size: 24px;
+  font-weight: bold;
 }
+
+.input-fields select {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 15px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  background-color: white;
+  font-size: 16px;
+}
+
 
 .webcam-container {
   flex: 2;
@@ -25,9 +43,11 @@
   flex-direction: column;
   justify-content: center;
   align-items: center;
+  height: 100vh;
 }
 
 .webcam {
+  margin-bottom: 25%;
   max-width: 100%;
 }
 
@@ -35,7 +55,7 @@
   display: flex;
 }
 
-.custom-button {
+/* .custom-button {
   padding: 8px 16px;
   border: none;
   border-radius: 999px;
@@ -52,8 +72,67 @@
 
 .custom-button.webcam-on {
   background-color: #4caf50;
+} */
+
+.custom-button {
+  background: linear-gradient(to right, #007bff, #0056b3);
+  color: white;
+  padding: 10px 15px;
+  z-index: 1;
+  position: absolute;
+  bottom: 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
+
+.custom-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.webcam {
+  max-width: 95%;
+  border-radius: 10px;
+  border: 1px solid #ddd;
+}
+
+
+.webcam-on {
+  background: linear-gradient(to right, #28a745, #1e7b34);
+}
+
+.webcam-off {
+  background: linear-gradient(to right, #dc3545, #b22e2b);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.present-student, .absent-student {
+  animation: fadeIn 0.8s ease;
+}
+
 
 .text-center {
   text-align: center;
 }
+
+.submit-button {
+  background-color: #007bff; /* Blue background */
+  color: white; /* White text */
+  padding: 12px 20px; /* Padding */
+  border: none; /* No border */
+  border-radius: 4px; /* Rounded corners */
+  cursor: pointer; /* Pointer cursor on hover */
+  transition: background-color 0.3s, transform 0.2s; /* Smooth background and transform transition */
+}
+
+.submit-button:hover, .submit-button:focus {
+  background-color: #0056b3; /* Darker shade of blue on hover/focus */
+  transform: scale(1.05); /* Slightly increase size on hover/focus */
+}
+

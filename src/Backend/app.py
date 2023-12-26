@@ -264,8 +264,10 @@ def gen():
         ret, jpeg = cv2.imencode('.jpg', frame)
         frame_encoded = jpeg.tobytes()
         yield (b'--frame\r\n' b'Content-Type: image/jpeg\r\n\r\n' + frame_encoded + b'\r\n')
-
+            
         rval, frame = webcam.read()
+
+        
 
     webcam.release()
     cv2.destroyAllWindows()
@@ -290,7 +292,7 @@ def upload_files():
             uploaded_filenames.append(filename)
 
     if uploaded_filenames:
-        train("public/images/", "public/classifier/trained_knn_model.clf")
+        train("public/images/", "../../public/classifier/trained_knn_model.clf")
 
         # Optionally, you can return a response with the list of successfully uploaded filenames
         return jsonify({'success': 'Files uploaded and trained successfully', 'uploaded_files': uploaded_filenames})

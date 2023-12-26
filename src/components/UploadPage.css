@@ -40,10 +40,11 @@
   
   /* Styling for image preview */
   .image-preview {
-    margin-top: 20px;
     display: flex;
     flex-wrap: wrap;
+    gap: 10px;
     justify-content: center;
+    margin-bottom: 20px;
   }
   
   .image-preview img {
@@ -74,3 +75,42 @@
     border-radius: 5px;
     box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
   }
+
+  .delete-button {
+  display: block;
+  background-color: #ff4d4d;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  padding: 5px 10px;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+.delete-button:hover {
+  background-color: #ff3333;
+}
+
+.upload-button,
+.submit-button {
+  cursor: pointer;
+  background-color: #008cba;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  padding: 10px 20px;
+  margin-top: 10px;
+}
+
+.upload-button:hover,
+.submit-button:hover {
+  background-color: #005f73;
+}
+
+.submit-button {
+  background-color: #4caf50;
+}
+
+.submit-button:hover {
+  background-color: #45a049;
+}

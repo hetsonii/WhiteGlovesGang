@@ -149,7 +149,7 @@ function Home() {
               {student.rollNumber} - {student.name}
             </div>
           ))}
-          <button onClick={handleSubmit}>Submit</button>
+          <button className='submit-button' type='submit' onClick={handleSubmit}>Submit</button>
         </div>
       </div>
     </div>
