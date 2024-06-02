@@ -27,7 +27,7 @@ cap.set(4, 480)
 # cap = cv2.VideoCapture("../Videos/motorbikes.mp4")  # For Video
 
 
-model = YOLO("version3_best.pt")
+model = YOLO("../../../public/classifier/version3_best.pt")
 
 classNames = ["fake", "real"]
 

@@ -1,16 +1,18 @@
-import cv2
 import os
 import re
 import csv
+import cv2
 import json
+import math
 import time
 import pickle
-import math
+import cvzone
 import shutil
 import face_recognition
 from flask import Flask, render_template, request, Response
 from flask import redirect, url_for, jsonify
 from flask_cors import CORS
+from ultralytics import YOLO
 from werkzeug.utils import secure_filename
 from sklearn import neighbors
 import numpy as np
@@ -27,7 +29,9 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 webcam = None
 global_selected_class = None
 global_selected_batch = None
+isReal = False
 studentsData = {}
+liveConfidence = 0.4
 
 def train_from_uploaded_images(upload_folder, model_save_path):
     X = []
@@ -155,56 +159,58 @@ def find_camera_index():
             return index
 
 
-def takeAttendance(name):
+def takeAttendance(name, isReal):
     csv_path = '../data/attendance.csv'
+
+    if isReal:
     
-    with open(csv_path, 'a+') as f:
-        f.seek(0)
-        lines = f.readlines()
-        nameList = [line.split(',')[0] for line in lines]
-        
-        now = datetime.now()
-        datestring = now.strftime('%H:%M:%S')
-        
-        if name not in nameList:
-            f.write(f'{name},{datestring},,\n')
-        else:
-            # Update the existing entry with outtime and duration
-            for line in lines:
-                if line.startswith(name):
-                    # Extract intime
-                    intime = line.split(',')[1]
-                    # Calculate duration
-                    intime_dt = datetime.strptime(intime, '%H:%M:%S')
-                    outtime_dt = now
-                    duration = outtime_dt - intime_dt
-                    # print(str(duration).split(',')[1])
-
-                    duration_str = str(duration).split(',')[1].split('.')[0].strip()  # Convert to string in right format
-
-                    updated_line = f'{name},{intime},{now.strftime("%H:%M:%S")},{duration_str}\n'
-                    lines[lines.index(line)] = updated_line
-                    break
-            
-            # Write the updated content back to the file
+        with open(csv_path, 'a+') as f:
             f.seek(0)
-            f.truncate()
-            f.writelines(lines)
+            lines = f.readlines()
+            nameList = [line.split(',')[0] for line in lines]
             
-    # Create JSON file with the updated data
-    jsonAttendanceData = []
-    with open(csv_path) as csvFile:
-        csvReader = csv.reader(csvFile)
-        for row in csvReader:
-            jsonAttendanceData.append({
-                'name': row[0],
-                'intime': row[1],
-                'outtime': row[2],
-                'duration': row[3]
-            })
+            now = datetime.now()
+            datestring = now.strftime('%H:%M:%S')
+            
+            if name not in nameList:
+                f.write(f'{name},{datestring},,\n')
+            else:
+                # Update the existing entry with outtime and duration
+                for line in lines:
+                    if line.startswith(name):
+                        # Extract intime
+                        intime = line.split(',')[1]
+                        # Calculate duration
+                        intime_dt = datetime.strptime(intime, '%H:%M:%S')
+                        outtime_dt = now
+                        duration = outtime_dt - intime_dt
+                        # print(str(duration).split(',')[1])
 
-    with open('../data/attendance.json', 'w') as jsonFile:
-        jsonFile.write(json.dumps(jsonAttendanceData, indent=4))
+                        duration_str = str(duration).split(',')[1].split('.')[0].strip()  # Convert to string in right format
+
+                        updated_line = f'{name},{intime},{now.strftime("%H:%M:%S")},{duration_str}\n'
+                        lines[lines.index(line)] = updated_line
+                        break
+                
+                # Write the updated content back to the file
+                f.seek(0)
+                f.truncate()
+                f.writelines(lines)
+                
+        # Create JSON file with the updated data
+        jsonAttendanceData = []
+        with open(csv_path) as csvFile:
+            csvReader = csv.reader(csvFile)
+            for row in csvReader:
+                jsonAttendanceData.append({
+                    'name': row[0],
+                    'intime': row[1],
+                    'outtime': row[2],
+                    'duration': row[3]
+                })
+
+        with open('../data/attendance.json', 'w') as jsonFile:
+            jsonFile.write(json.dumps(jsonAttendanceData, indent=4))
 
 
 def predict(img, knn_clf=None, model_path=None, threshold=0.5):
@@ -241,8 +247,7 @@ def predict(img, knn_clf=None, model_path=None, threshold=0.5):
 
 
 def gen():
-    global webcam
-    global global_selected_class, global_selected_batch, studentsData
+    global webcam, global_selected_class, global_selected_batch, studentsData, isReal
 
     selected_class = global_selected_class
     selected_batch = global_selected_batch
@@ -274,10 +279,54 @@ def gen():
     if webcam is None:
         webcam = cv2.VideoCapture(find_camera_index())
 
+    liveModel = YOLO("../../public/classifier/version3_best.pt")
+    classNames = ["fake", "real"]
+    isReal_confidence_threshold = 0.99  # You can adjust this threshold based on your requirements
+    history_length = 15  # Number of frames to consider for temporal consistency
+    confidence_history = []  # List to store confidence levels over the last frames
+
     while 1==1:
         try:
 
             rval, frame = webcam.read()
+
+            liveResults = liveModel(frame, stream=True, verbose=False)
+
+            for r in liveResults:
+                boxes = r.boxes
+                real_count = 0
+                fake_count = 0
+
+                for box in boxes:
+
+                    conf = math.ceil((box.conf[0] * 100)) / 100
+                    cls = int(box.cls[0])
+
+                    if conf > liveConfidence:
+                        if classNames[cls] == 'real':
+                            print("real")
+                            real_count += 1 
+                        else:
+                            print("fake")
+                            # name = name + " Fake"
+                            fake_count += 1
+                            # continue
+            
+            total_faces = real_count + fake_count
+            confidence_index = real_count / total_faces if total_faces > 0 else 0
+            confidence_history.append(confidence_index)
+
+            # Keep history length consistent
+            if len(confidence_history) > history_length:
+                confidence_history.pop(0)
+
+            # Decide isReal based on temporal consistency
+            avg_confidence = sum(confidence_history) / len(confidence_history) if confidence_history else 0
+            if avg_confidence >= isReal_confidence_threshold:
+                isReal = True
+            else:
+                isReal = False
+
 
             if not rval:
                 print("Error reading frame. Restarting webcam...")
@@ -289,6 +338,8 @@ def gen():
             frame = cv2.flip(frame, 1)
             frame_copy = cv2.resize(frame, (0, 0), fx=0.25, fy=0.25)
             frame_copy = cv2.cvtColor(frame_copy, cv2.COLOR_BGR2RGB)
+
+            # Perform predictions using the classifier
             predictions = predict(frame_copy, model_path="../../public/classifier/trained_knn_model.clf")  # Update path
             font = cv2.FONT_HERSHEY_DUPLEX
             
@@ -297,11 +348,12 @@ def gen():
                 right *= 4
                 bottom *= 4
                 left *= 4
+
                 cv2.rectangle(frame, (left, top), (right, bottom), (0, 255, 255), 2)
-                cv2.putText(frame, name, (left - 10, top - 6), font, 0.8, (255, 255, 255), 1)
+                cv2.putText(frame, name, (left - 10, top - 6), font, 2.5, (255, 255, 255), 2)
 
                 if name != 'unknown' and name in list(studentsData.keys()):
-                    takeAttendance(name)
+                    takeAttendance(name, isReal)
 
             ret, jpeg = cv2.imencode('.jpg', frame)
             frame_encoded = jpeg.tobytes()
