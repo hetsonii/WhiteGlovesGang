@@ -12,8 +12,8 @@ jobs:
 
       - name: Check attendance.json and attendance.csv
         run: |
-          json_file="attendance.json"
-          csv_file="attendance.csv"
+          json_file="src/data/attendance.json"
+          csv_file="src/data/attendance.csv"
 
           # Check if attendance.json contains only "[]"
           if [[ -f "$json_file" ]]; then
