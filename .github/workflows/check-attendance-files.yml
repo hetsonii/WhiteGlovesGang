@@ -1,0 +1,39 @@
+name: Check Attendance Files
+
+on: [push, pull_request]
+
+jobs:
+  check_files:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Check attendance.json and attendance.csv
+        run: |
+          json_file="attendance.json"
+          csv_file="attendance.csv"
+
+          # Check if attendance.json contains only "[]"
+          if [[ -f "$json_file" ]]; then
+              content=$(<"$json_file")
+              if [[ "$content" != "[]" ]]; then
+                  echo "Error: $json_file must contain only '[]'"
+                  exit 1
+              fi
+          else
+              echo "Error: $json_file does not exist"
+              exit 1
+          fi
+
+          # Check if attendance.csv is empty
+          if [[ -f "$csv_file" ]]; then
+              if [[ -s "$csv_file" ]]; then
+                  echo "Error: $csv_file must be empty"
+                  exit 1
+              fi
+          else
+              echo "Error: $csv_file does not exist"
+              exit 1
+          fi
